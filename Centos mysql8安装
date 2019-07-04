@@ -1,0 +1,78 @@
+Centos mysql8安装
+1，先去官网下载包,并通过xftp传到虚拟机上
+
+2，检查centos有没有安装mysql（rpm -qa|grep -i mysql），有的话卸载
+
+（rpm -e mysql-*.*.*-linux(对应文件名)  --nodeps）
+
+3，创建mysql 的用户组/用户（有的话，先删除，不然会报错），data目录及其用户目录
+
+userdel mysql           # 删除用户
+
+groupdel mysql          # 删除用户组名
+
+mkdir /home/mysql       # 在home文件夹下创建文件夹mysql
+
+mkdir /home/mysql/data  # 在mysql文件夹下创建文件夹data  
+
+groupadd mysql           # 创建一个名为mysql的用户组       
+
+useradd -g mysql -d /home/mysql mysql  # 在用户组下创建用户
+
+ 
+
+ 
+
+4，运行解压命令 tar -zxvf  文件名 ，（可以更改解压文件目录和文件名），放在自己想放的位置
+
+5，mysql8不再有my.cnf文件，所以自己创建一个（vim  /etc/my.cnf），做好自己的配置，或者直接通过xftp上传一
+个my.cnf文件放到/etc下面(my.cnf可以参看下面）
+
+[mysqld]
+port=3306
+basedir=/home/mysql
+datadir=/home/mysql/data
+socket=/tmp/mysql.sock
+log-error=/home/mysql/data/error.log
+pid-file=/home/mysql/data/mysql.pid
+user=mysql
+tmpdir=/tmp
+character_set_server=utf8
+default-storage-engine=INNODB
+init_connect='SET NAMES utf8'
+default_authentication_plugin=mysql_native_password
+
+[client]
+port=3306
+default-character-set=utf8
+
+
+6，初始化mysql数据库 ./bin/mysqld --initialize
+
+(网上有的地方写的是./bin/mysqld --user=mysql --basedir=/home/mysql --datadir=/home/mysql/data --initialize，
+然后安装成功会有提示用户root的一个随机密码生成，这里没有，这些信息全在my.cnf配置的datadir目录下的日志文件中，其实没多大作用
+，后面改密码可以直接使用非密码验证登录，将第六步和第五步执行顺序颠倒也行，但是，安装时，需要指定 user ,basedir,datadir）.
+
+7，配置mysql服务
+
+cp 文件目录/support-files/mysql.server /etc/init.d/mysqld //复制启动文件
+
+chmod 755 /etc/init.d/mysqld  //增加执行权限
+
+
+
+
+ 
+#启动测试
+service mysqld start
+
+mysql -u root -p (一路直接回车)
+
+#在mysql中修改密码为123456。
+set PASSWORD = '123456';
+
+在做实验的过程中，曾经尝试用./mysqld –initialize命令初始化数据库，但是初始化失败，
+于是尝试运用./bin/mysqld --user=mysql --basedir=/home/mysql --datadir=/home/mysql/data --initialize命
+令初始化数据库，成功，然后才可以启动数据库。
+
+
